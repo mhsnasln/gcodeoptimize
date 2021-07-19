@@ -7,21 +7,20 @@ import (
 	"strings"
 )
 
-type Line struct {
-	GCode  string
-	Values interface{}
-}
-
 func main() {
 
-	f, _ := os.Open("./import.gcode")
+	// Dosyamızın yolunu belirtiyoruz
+	file, _ := os.Open("./import.gcode")
 
-	scanner := bufio.NewScanner(f)
-	// var lines []Line
+	// Dosyamızın her bir satırını bize text olarak yansıtacak
+	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 
+		// Dosyadaki her bir satırı alıyoruz
 		line := scanner.Text()
+
+		// Satır işlemlerini ayrıca bir fonksiyonda yapıyorum
 		optimze, _ := worker(line)
 
 		// Boş geldi dolayısı ile açıklama satırı veya hakkaten boş satır
@@ -29,21 +28,10 @@ func main() {
 			continue
 		}
 
+		// Kontrol için ekrana yazdırıyoruz
 		fmt.Println(optimze)
 
-		// lines = append(lines, Line{
-		// 	GCode:  string(optimze[1]),
-		// 	Values: optimze[1:],
-		// })
-
 	}
-
-	// result, err := worker(lines)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(result)
 
 }
 
