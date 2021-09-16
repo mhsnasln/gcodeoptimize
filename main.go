@@ -3,17 +3,31 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
 func main() {
 
+	var import_name string
+	var export_name string
+
+	fmt.Print("İşlem yapılacak dosyanın adını girin:")
+	fmt.Scanf("%s", &import_name)
+	fmt.Print("Yeni dosyanın ismini girin:")
+	fmt.Scanf("%s", &export_name)
+
 	// Dosyamızın yolunu belirtiyoruz
-	file, _ := os.Open("./import.gcode")
+	file, err := os.ReadFile(import_name)
+	if err != nil {
+		log.Fatalf("İşlem yapılacak dosya bulunamadı: %s", err)
+	}
 
 	// Dosyamızın her bir satırını bize text olarak yansıtacak
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(strings.NewReader(string(file)))
+
+	response := make([]string, 10)
 
 	for scanner.Scan() {
 
@@ -21,17 +35,36 @@ func main() {
 		line := scanner.Text()
 
 		// Satır işlemlerini ayrıca bir fonksiyonda yapıyorum
-		optimze, _ := worker(line)
+		optimize, err := worker(line)
+		if err != nil {
+			panic("Birşeyler ters gitti.")
+		}
 
 		// Boş geldi dolayısı ile açıklama satırı veya hakkaten boş satır
-		if len(optimze) == 0 {
+		if len(optimize) == 0 {
 			continue
 		}
 
-		// Kontrol için ekrana yazdırıyoruz
-		fmt.Println(optimze)
+		response = append(response, optimize)
 
 	}
+
+	wf, err := os.Create(export_name)
+	if err != nil {
+		log.Fatalf("Bir sorun oluştu: %s", err)
+	}
+
+	datawriter := bufio.NewWriter(wf)
+
+	for _, data := range response {
+		if len(data) == 0 {
+			continue
+		}
+		_, _ = datawriter.WriteString(data + "\n")
+	}
+
+	datawriter.Flush()
+	wf.Close()
 
 }
 
