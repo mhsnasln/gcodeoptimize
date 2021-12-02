@@ -1,9 +1,5 @@
 name: Release
 
-on: 
-  release:
-    types: [created]
-
 jobs:
   releases-matrix:
     name: Go Release
