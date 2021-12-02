@@ -18,7 +18,7 @@ func main() {
 	var x_value float64
 
 	// Kullanıcıdan dosya adı istiyoruz!
-	fmt.Print("İşlem yapılacak dosyanın adını girin:")
+	fmt.Print("İşlem yapılacak dosyanın adı:")
 	fmt.Scanf("%s", &import_name)
 
 	// X'ler ne kadar artırılacağını soruyoruz
