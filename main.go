@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -29,7 +30,7 @@ func main() {
 
 	// X'ler ne kadar artırılacağını soruyoruz
 	fmt.Print("X Değerini Girin:")
-	fmt.Scanf("%s", &x_value)
+	fmt.Scanf("%f", &x_value)
 
 	// Dosyamızın yolunu belirtiyoruz
 	file, err := os.ReadFile(import_name)
@@ -50,7 +51,7 @@ func main() {
 		line := scanner.Text()
 
 		// Satır işlemleraini ayrıca bir fonksiyonda yapıyorum
-		optimize, err := worker(line)
+		optimize, err := worker(line, x_value)
 		if err != nil {
 			panic("Birşeyler ters gitti.")
 		}
@@ -78,24 +79,31 @@ func main() {
 		if len(data) == 0 {
 			continue
 		}
-		_, _ = datawriter.WriteString(data + "\n")
+		_, err = datawriter.WriteString(data + "\n")
+		if err != nil {
+			log.Fatalf("Bir sorun oluştu: %s", err)
+		}
 	}
 
 	datawriter.Flush()
 	wf.Close()
 
-	fmt.Println("Dosya başarıyla dönüştürüldü!")
+	fmt.Println("Dosya sorunsuz dönüştürüldü!")
 
 }
 
 // bu fonksiyon gelen her satırı işleyip işlenmiş satırı geri gönderiyor
-func worker(line string) (string, error) {
+func worker(line string, x_value float64) (string, error) {
 
 	// Dosyadan gelen satırı boşluklarına göre böl
 	split_line_with_space := strings.Split(line, " ")
 
 	// Kuralımız işlem yapabilmem için ilk karakter her zaman G
 	if string(line[0]) == ";" {
+		return "", nil
+	}
+
+	if len(split_line_with_space) > 0 {
 		return "", nil
 	}
 
@@ -111,7 +119,14 @@ func worker(line string) (string, error) {
 			continue
 		}
 
-		// TODO: Bu alanda kullanıcıdan aldığım x değerini her x satırına ekleyeceğim
+		x_val_float, err := strconv.ParseFloat(v[1:len(string(v))], 64)
+		if err != nil {
+			fmt.Println("Hata")
+		}
+
+		float64ToString := fmt.Sprint(x_val_float + x_value)
+
+		split_line_with_space = []string{"X" + float64ToString}
 
 	}
 
