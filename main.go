@@ -14,19 +14,12 @@ func main() {
 	// İşlem yapılacak dosyanın adını giriyor
 	var import_name string
 
-	// İşlem yapıldıktan sonra yeni dosyanın ismi
-	var export_name string
-
 	// X değerlerinin artırılma x kadar artırılacak
 	var x_value float64
 
 	// Kullanıcıdan dosya adı istiyoruz!
 	fmt.Print("İşlem yapılacak dosyanın adını girin:")
 	fmt.Scanf("%s", &import_name)
-
-	// Dosya işlem bittikten sonra hangi isimle kaydedilecek
-	fmt.Print("Yeni dosyanın ismini girin:")
-	fmt.Scanf("%s", &export_name)
 
 	// X'ler ne kadar artırılacağını soruyoruz
 	fmt.Print("X Değerini Girin:")
@@ -35,13 +28,13 @@ func main() {
 	// Dosyamızın yolunu belirtiyoruz
 	file, err := os.ReadFile(import_name)
 	if err != nil {
-		log.Fatalf("İşlem yapılacak dosya bulunamadı: %s", err)
+		log.Fatalf("İşlem yapılacak dosya bulunamadı")
 	}
 
 	// Dosyamızın her bir satırını işlemek için alıyoruz
 	scanner := bufio.NewScanner(strings.NewReader(string(file)))
 
-	// Her satır dışarıya dönebilmesi için döngü dışında bir değişken tanımladım. İşlenmiş tüm satırlar burada döngünün tamamlanmasını bekleyecek
+	// Her satır dışarıya dönebilmesi için döngü dışında bir değişken tanımladım. İşlenmiş tüm satırlar burada döngünün tamamlanmasını bekleyeyip değişkene girecek
 	response := make([]string, 10)
 
 	// Dosya bitene kadar her bir satırda işlem tekrar edeiyor
@@ -56,7 +49,7 @@ func main() {
 			panic("Birşeyler ters gitti.")
 		}
 
-		// Kontrol ediyorum satır boş veya açıklama satırı ise atlamasını söylüyorum
+		// Burada worker fonksiyonundan gelen veriyi kontrol ediyorum boş geliyorsa ihtiyacımız olmadan veri göndermiştir. Boş, Açıklama satırı vs.
 		if len(optimize) == 0 {
 			continue
 		}
@@ -67,7 +60,7 @@ func main() {
 	}
 
 	// Buraya kadar geldiysek tüm satırlar işlenmiş ve kaydedilmeye hazır
-	wf, err := os.Create(export_name)
+	wf, err := os.Create("optimize_" + import_name)
 	if err != nil {
 		log.Fatalf("Bir sorun oluştu: %s", err)
 	}
@@ -95,54 +88,69 @@ func main() {
 // bu fonksiyon gelen her satırı işleyip işlenmiş satırı geri gönderiyor
 func worker(line string, x_value float64) (string, error) {
 
-	// Dosyadan gelen satırı boşluklarına göre böl
-	split_line_with_space := strings.Split(line, " ")
+	// Gelen satırda ne kadar uzunlukta bir veri var eğer boş veriyse hemen işlem iptal ediyorum
+	if len(line) == 0 {
+		return "", nil
+	}
 
-	// Kuralımız işlem yapabilmem için ilk karakter her zaman G
+	// Yine gelen veride açıklama satırı varsa doğrudan siliyorum
 	if string(line[0]) == ";" {
 		return "", nil
 	}
 
-	if len(split_line_with_space) > 0 {
-		return "", nil
-	}
+	// Dosyadan gelen satırı boşluklarına göre böl
+	split_line_with_space := strings.Split(line, " ")
 
-	// Satırın son kısımda M ile başlayan satır varsa onu sil
-	lastline := split_line_with_space[len(split_line_with_space)-1]
+	// Satırdaki verileri boşluğa göre parçalayıp herbirinde işlem yaptırıyorum
+	for index, v := range split_line_with_space {
 
-	// X'ler belirtildiği kadar artırılacak
-	for _, v := range split_line_with_space {
-
-		first_char := v[0]
-
-		if string(first_char) != "X" {
+		// Yine aynı şekilde her satır parçası boş mu değil mi kontrol ediyorum
+		if len(v) == 0 {
 			continue
 		}
 
-		x_val_float, err := strconv.ParseFloat(v[1:len(string(v))], 64)
-		if err != nil {
-			fmt.Println("Hata")
+		// Satır içindeki parçalardan her birinin ilk karakterine bakıyorum
+		first_char := v[0:1]
+
+		// İlk karakter boş mu kontrol ediyorum
+		if string(first_char) == "" {
+			split_line_with_space[index] = ""
 		}
 
-		float64ToString := fmt.Sprint(x_val_float + x_value)
+		// Burada belki parçaların ilkinde olmasa da 3. satırda açıklama satırı olabilir bunu siliyorum
+		if string(first_char) == ";" {
+			split_line_with_space[index] = ""
+		}
 
-		split_line_with_space = []string{"X" + float64ToString}
+		// İlk karakter x ise artırma işlemini yapıyorum
+		if string(first_char) == "X" {
 
-	}
+			// x'in yanındaki değeri x kadar artırıyorum
+			x_val_float, err := strconv.ParseFloat(v[1:len(string(v))], 64)
+			if err != nil {
+				log.Fatalf("Hata Oluştu %s", err)
+			}
 
-	// Satırın sonında E veya e harfi gördüğünde silecek
-	if string(lastline[0]) == "E" || string(lastline[0]) == "e" {
-		split_line_with_space = append(split_line_with_space[:len(split_line_with_space)-1], split_line_with_space[len(split_line_with_space)-1+1:]...)
-	}
+			// Ve kaydediyorum yine aynı yerine
+			float64ToString := fmt.Sprint(x_val_float + x_value)
+			split_line_with_space[index] = "X" + float64ToString
+		}
 
-	// ilk satır g0 ise sonuna "M9"
-	if string(split_line_with_space[0]) == "G0" {
-		split_line_with_space = append(split_line_with_space, "M9")
-	}
+		// Satırın sonında E veya e harfi gördüğünde silecek
+		if string(first_char) == "E" || string(first_char) == "e" {
+			split_line_with_space[index] = ""
+		}
 
-	// ilk satır g1 ise sonuna "M8"
-	if string(split_line_with_space[0]) == "G1" {
-		split_line_with_space = append(split_line_with_space, "M8")
+		// ilk satır G0 ise sonuna "M9"
+		if string(v) == "G0" {
+			split_line_with_space = append(split_line_with_space, "M9")
+		}
+
+		// ilk satır G1 ise sonuna "M8"
+		if string(v) == "G1" {
+			split_line_with_space = append(split_line_with_space, "M8")
+		}
+
 	}
 
 	// Paçalanan veri yeniden birleştiriyoruz
