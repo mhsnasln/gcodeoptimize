@@ -15,8 +15,10 @@ func Regulator(layer *models.Layer, export_name string) {
 	var block = &models.Block{}
 	var part = &models.Part{}
 
+	var z_length = len(layer.Items)
+
 	// Her bir pointte yine işlem yapacağız
-	for i := 0; i < len(layer.Items); i++ {
+	for i := 0; i < z_length; i++ {
 
 		item := layer.Items[i]
 
@@ -33,11 +35,6 @@ func Regulator(layer *models.Layer, export_name string) {
 				block.Parts = append(block.Parts, *part)
 			}
 			part.Z = item.Z
-		}
-
-		// Sonuncu ya geldinde kalan noktaları alıyoruz
-		if i == len(layer.Items)-1 {
-			block.Parts = append(block.Parts, *part)
 		}
 
 		// Tüm bunlarla bir katman oluşturuyoruz
@@ -63,13 +60,19 @@ func Regulator(layer *models.Layer, export_name string) {
 		for index, j := range p.Items {
 
 			headOne := fmt.Sprintf("G%d X%f Y%f Z%f M%f", j.G, j.X, j.Y, p.Z, j.M1)
-			_, _ = datawriter.WriteString(headOne + "\n")
+			_, err = datawriter.WriteString(headOne + "\n")
+			if err != nil {
+				log.Fatalf("Bir sorun oluştu: %s", err)
+			}
 
 			// İlk başlığın noktarı bittikten hemen sonra 2. makinenin kafa bilgilerini kaydediyorum
 			if index == len(p.Items)-1 {
 				for _, a := range p.Items {
 					headTwo := fmt.Sprintf("G%d X%f Y%f Z%f M%f", a.G, a.XInc, a.Y, p.Z, a.M2)
-					_, _ = datawriter.WriteString(headTwo + "\n")
+					_, err = datawriter.WriteString(headTwo + "\n")
+					if err != nil {
+						log.Fatalf("Bir sorun oluştu: %s", err)
+					}
 				}
 			}
 		}

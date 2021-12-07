@@ -8,6 +8,8 @@ import (
 	"github.com/mhsnasln/gocode/models"
 )
 
+var Temp_z = 0.0
+
 // Fonksiyon amacı gelen satırları daha özgür bir şekilde manipüle etmem için
 func Compressor(line string, x_value float64) (*models.Point, error) {
 
@@ -92,11 +94,14 @@ func Compressor(line string, x_value float64) (*models.Point, error) {
 			// x'in yanındaki değeri x kadar artırıyorum
 			z_val_float, err := strconv.ParseFloat(v[1:len(string(v))], 64)
 			if err != nil {
-				log.Fatalf("Y Değeri alınırken hata Oluştu %s", err)
+				log.Fatalf("Z Değeri alınırken hata Oluştu %s", err)
 			}
 
-			point.Z = z_val_float
+			Temp_z = z_val_float
+			point.Z = Temp_z
 
+		} else {
+			point.Z = Temp_z
 		}
 
 	}
