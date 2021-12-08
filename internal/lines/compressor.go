@@ -118,13 +118,13 @@ func Compressor(line string, x_value float64) (*models.Point, error) {
 func Regulator(layer *models.Layer, export_name string) {
 
 	var block = &models.Block{}
-	var part models.Part
+	var part = models.Part{}
 
 	// layer uzunluğu
 	var layer_length = len(layer.Items)
 
 	// ilk karşılacağımız point'in z değerini alıyoruz
-	var current_z float64 = -1.00
+	var current_z float64 = layer.Items[0].Z
 
 	// Her bir pointte yine işlem yapacağız
 	for i := 0; i < layer_length; i++ {
@@ -132,15 +132,22 @@ func Regulator(layer *models.Layer, export_name string) {
 		// Her bir point
 		item := layer.Items[i]
 
-		if i == 0 {
-			part = models.Part{}
-		} else if item.Z != current_z {
-			part.Z = item.Z
+		if item.Z != current_z {
+
+			part.Z = layer.Items[i-1].Z
 			block.Parts = append(block.Parts, part)
 			current_z = item.Z
+
 			part = models.Part{}
+			part.Items = append(part.Items, item)
+
 		} else {
 			part.Items = append(part.Items, item)
+		}
+
+		if i == layer_length-1 {
+			part.Z = layer.Items[i].Z
+			block.Parts = append(block.Parts, part)
 		}
 
 	}
