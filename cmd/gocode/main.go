@@ -7,8 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mhsnasln/gocode/models"
-	"github.com/mhsnasln/gocode/services"
+	"github.com/mhsnasln/gocode/internal"
 )
 
 // İşlem yapılacak dosyanın adını giriyor
@@ -38,9 +37,9 @@ func main() {
 	// Dosyamızın her bir satırını işlemek için alıyoruz
 	scanner := bufio.NewScanner(strings.NewReader(string(file)))
 
-	layer := &models.Layer{}
+	layer := &internal.Layer{}
 
-	layer.Items = []models.Point{}
+	layer.Items = []internal.Point{}
 
 	// Dosya bitene kadar her bir satırda işlem tekrar edeiyor
 	for scanner.Scan() {
@@ -49,14 +48,16 @@ func main() {
 		line := scanner.Text()
 
 		// Kafa1
-		optimized_point, err := services.Compressor(line, x_value)
+		optimized_point, err := internal.Compressor(line, x_value)
 		if err != nil {
-			panic("Birşeyler ters gitti.")
+			panic("Compressorde sorun çıktı!")
 		}
 
-		if optimized_point.M1 != 0 {
-			layer.Items = append(layer.Items, *optimized_point)
+		if optimized_point.X == 0 && optimized_point.Y == 0 {
+			continue
 		}
+
+		layer.Items = append(layer.Items, *optimized_point)
 
 	}
 

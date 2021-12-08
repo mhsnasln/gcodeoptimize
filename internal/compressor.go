@@ -1,20 +1,18 @@
-package services
+package internal
 
 import (
 	"log"
 	"strconv"
 	"strings"
-
-	"github.com/mhsnasln/gocode/models"
 )
 
 var Temp_z = 0.0
 
 // Fonksiyon amacı gelen satırları daha özgür bir şekilde manipüle etmem için
-func Compressor(line string, x_value float64) (*models.Point, error) {
+func Compressor(line string, x_value float64) (*internal.Point, error) {
 
 	// Nokta oluşturuyorum
-	point := models.Point{}
+	point := internal.Point{}
 
 	// Gelen satırda ne kadar uzunlukta bir veri var eğer boş veriyse hemen işlem iptal ediyorum
 	if len(line) == 0 || string(line[0]) == ";" || (string(line[0:2]) != "G0" && string(line[0:2]) != "G1") {

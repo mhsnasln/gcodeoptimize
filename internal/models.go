@@ -1,4 +1,4 @@
-package models
+package internal
 
 type Layer struct {
 	Items []Point `json:"items"`
