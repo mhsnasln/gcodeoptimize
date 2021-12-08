@@ -133,13 +133,11 @@ func Regulator(layer *models.Layer, export_name string) {
 		item := layer.Items[i]
 
 		if i == 0 {
-			fmt.Println("For i == 0")
 			part = models.Part{}
 		} else if item.Z != current_z {
 			part.Z = item.Z
 			block.Parts = append(block.Parts, part)
 			current_z = item.Z
-			fmt.Println("For block")
 			part = models.Part{}
 		} else {
 			part.Items = append(part.Items, item)
@@ -150,14 +148,21 @@ func Regulator(layer *models.Layer, export_name string) {
 	// Tüm veriyi kaydedebilmek için bu isimde bir dosya oluşturuyoruz!
 	wf, err := os.Create("./exports/optimized_" + export_name + ".gcode")
 	if err != nil {
-		log.Fatalf("exports klasörü bulunamadı!")
+		log.Fatalf("Exports klasörü bulunamadı!")
 	}
 
 	datawriter := bufio.NewWriter(wf)
 
 	// Klasik Başlangıç Değerleri
-	_, _ = datawriter.WriteString("G28 G21 G90" + "\n")
-	_, _ = datawriter.WriteString("M203" + "\n")
+	_, err = datawriter.WriteString("G28 G21 G90" + "\n")
+	if err != nil {
+		log.Fatalf("G28 G21 G90 satırı projeye eklenmedi")
+	}
+
+	_, err = datawriter.WriteString("M203" + "\n")
+	if err != nil {
+		log.Fatalf("M203 satırı projeye eklenmedi")
+	}
 
 	// Her bir z grubu için
 	for _, p := range block.Parts {
@@ -168,7 +173,7 @@ func Regulator(layer *models.Layer, export_name string) {
 			headOne := fmt.Sprintf("G%d X%f Y%f Z%f M%f", j.G, j.X, j.Y, p.Z, j.M1)
 			_, err = datawriter.WriteString(headOne + "\n")
 			if err != nil {
-				log.Fatalf("Bir sorun oluştu: %s", err)
+				log.Fatalf("Kafa1 kodlarında bir sorun oluştu: %s", err)
 			}
 
 			// İlk başlığın noktarı bittikten hemen sonra 2. makinenin kafa bilgilerini kaydediyorum
@@ -177,7 +182,7 @@ func Regulator(layer *models.Layer, export_name string) {
 					headTwo := fmt.Sprintf("G%d X%f Y%f Z%f M%f", a.G, a.XInc, a.Y, p.Z, a.M2)
 					_, err = datawriter.WriteString(headTwo + "\n")
 					if err != nil {
-						log.Fatalf("Bir sorun oluştu: %s", err)
+						log.Fatalf("Kafa2 kodlarında bir sorun oluştu: %s", err)
 					}
 				}
 			}
@@ -186,8 +191,15 @@ func Regulator(layer *models.Layer, export_name string) {
 	}
 
 	// Klasik Bitiş Değerleri
-	_, _ = datawriter.WriteString("M213" + "\n")
-	_, _ = datawriter.WriteString("M30" + "\n")
+	_, err = datawriter.WriteString("M213" + "\n")
+	if err != nil {
+		log.Fatalf("M213 satırı projeye eklenmedi")
+	}
+
+	_, err = datawriter.WriteString("M30" + "\n")
+	if err != nil {
+		log.Fatalf("M30 satırı projeye eklenmedi")
+	}
 
 	// Dosya işlemlerini kapatıyorum
 	datawriter.Flush()
