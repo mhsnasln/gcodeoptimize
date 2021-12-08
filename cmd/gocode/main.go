@@ -21,11 +21,11 @@ func main() {
 
 	// Kullanıcıdan dosya adı istiyoruz!
 	fmt.Print("İşlem yapılacak dosyanın adı:")
-	fmt.Scanf("%s", &file_name)
+	fmt.Scan(&file_name)
 
 	// X'ler ne kadar artırılacağını soruyoruz
 	fmt.Print("X Değerini Girin:")
-	fmt.Scanf("%f", &x_value)
+	fmt.Scan(&x_value)
 
 	// Kullanıcıdan aldığımız dosya adını okumaya başlıyoruz.
 	file, err := os.ReadFile(fmt.Sprintf("%s.gcode", file_name))
@@ -67,5 +67,9 @@ func main() {
 
 	// Uygulama burada mesaj verip kapanıyor!
 	fmt.Println("Dosya başarıyla oluşturuldu!")
+
+	// Hata veya normal mesajları gördükten sonra kapatmak için mesaj veriyoruz
+	fmt.Print("Bitirmek için Enter tuşuna basın!")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 }

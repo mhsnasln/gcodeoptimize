@@ -2,3 +2,9 @@ FIXME: Error handling will update
 FIXME: File actions will update
 
 TODO: Tests will add
+
+Build:
+
+go build -o=build/myapp ./cmd/gocode/main.go
+GOOS=windows GOARCH=amd64 go build -o=releases/windows/ibraslan.exe -v ./cmd/gocode/main.go
+GOOS=linux GOARCH=amd64 go build -o=releases/linux/ibraslan -v ./cmd/gocode/main.go
